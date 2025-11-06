@@ -26,11 +26,24 @@ public class SearchService
 
         foreach (string file in Directory.GetFiles(path))
         {
-            if (File.ReadAllText(file).Contains(query))
+            var fileContent = File.ReadAllText(file);
+
+            if (fileContent.Contains(query, StringComparison.OrdinalIgnoreCase))
             {
                 var filename = Path.GetFileName(file);
+                string title = filename; // Use filename as a fallback title
 
-                results.Add(new Result { Filename = filename});
+                // Read the first few lines to find the title
+                var titleLine = File.ReadLines(file)
+                                    .FirstOrDefault(line => line.StartsWith("title:", StringComparison.OrdinalIgnoreCase));
+
+                if (titleLine != null)
+                {
+                    // Extract the title from the line (e.g., "title: The Title")
+                    title = titleLine.Substring("title:".Length).Trim();
+                }
+
+                results.Add(new Result { Filename = filename, Title = title });
             }
         }
 
